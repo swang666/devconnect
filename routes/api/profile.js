@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require("../../middleware/auth");
 const Profile = require("../../models/Profile");
 const User = require("../../models/User");
+const Post = require("../../models/Post");
 const request = require("request");
 const config = require("config");
 const { body, validationResult } = require("express-validator");
@@ -11,12 +12,11 @@ const { body, validationResult } = require("express-validator");
 // @desc Get current users profile
 // @access private
 router.get("/me", auth, async (req, res) => {
-  
   try {
     const profile = await Profile.findOne({
       user: req.user.id
     }).populate("user", ["name", "avatar"]);
-    
+
     if (!profile) {
       return res.status(400).json({ msg: "user does not exist" });
     }
@@ -146,7 +146,7 @@ router.get("/user/:user_id", async (req, res) => {
 router.delete("/", auth, async (req, res) => {
   try {
     //remove user's posts
-
+    await Post.deleteMany({ user: req.user.id });
     //remove profile
     await Profile.findOneAndRemove({ user: req.user.id });
     await User.findOneAndRemove({ _id: req.user.id });
